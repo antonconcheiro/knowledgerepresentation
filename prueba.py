@@ -16,9 +16,11 @@ class Identifier:
             self.negation=False
 
 class Tuple:
-    def __init__(self,id1,id2,negation,operator):
+    def __init__(self,notid1,id1,notid2,id2,negation,operator):
         self.id1=id1
+        self.notid1=notid1
         self.id2=id2
+        self.notid2=notid2
         self.negation=negation
         self.operator=operator
 
@@ -32,7 +34,7 @@ class Tuple:
         self.operator=operator
 
     def setNegative(self):
-        if not getNegation:
+        if not self.getNegation():
             self.negation=True
         else:
             self.negation=False
@@ -40,27 +42,54 @@ class Tuple:
     def setPositive(self):
         self.negation=True
 
+    def getid1(self):
+        return self.id1
+
+    def getid2(self):
+        return self.id2
+
     def setid1(self,id1):
         self.id1=id1
 
     def setid2(self,id2):
         self.id2=id2
 
+    def getnotid1(self):
+        return self.notid1
+
+    def setnotid1(self,value):
+        if value==False and self.notid1==False:
+            self.notid1=True
+        else:
+            self.notid1=value
+
+    def getnotid2(self):
+        return self.notid2
+
+    def setnotid2(self,value):
+        if value == False and self.notid2 == False:
+            self.notid2 = True
+        else:
+            self.notid2 = value
+
+    def is_one_sided(self):
+        return True if self.getid2()==None and self.getOperator()=='V' else False
+
     def deMorgan(self):
-        if not self.getNegation() and id1.getNegation() and id2.getNegation() and self.getOperator()=='|':
+        if not self.getNegation() and self.getnotid1() and self.getnotid2() and self.getOperator()=='|':
             self.setPositive()
-            self.id1.setNegative()
-            self.id2.setNegative()
+            self.setnotid1(False)
+            self.setnotid2(False)
             self.setOperator('&')
-        elif not self.getNegation() and id1.getNegation() and id2.getNegation() and self.getOperator()=='&':
+        elif not self.getNegation() and self.getnotid1() and self.getnotid2() and self.getOperator()=='&':
             self.setPositive()
-            self.id1.setNegative()
-            self.id2.setNegative()
+            self.setnotid1(False)
+            self.setnotid2(False)
             self.setOperator('|')
 
     def simplify_Implication(self):
         self.setOperator('|')
-        self.id1.setNegative()
+        self.setnotid1(False)
 
     def simplify_Equivalence(self):
         result1=Tuple(id1,id2,True,'>')
@@ -77,9 +106,9 @@ class Tuple:
         self.setid2(result2)
         self.setOperator('&')
 
-    def print_Tuple(self):
-        print(self.operator+" "+str(self.id1.getNegation())+" "+self.id1.name+" "+str(self.id2.getNegation())+" "+self.id2.name)
-
+    def simplify_or(self):
+        if self.getOperator()=='V' and self.getid1().is_one_sided() and self.getid2().is_one_sided():
+            tuple=Tuple(self.getnotid1(),self.getid1().getid1(),self.getnotid2(),self.getid2().getid1(),True,'V')
 
 def is_operator(word):
     symbols = ['&', '|', '-', '>', '=', '%', '0', '1']
@@ -100,59 +129,65 @@ def write_identifiers(output,identifiers,num_identifiers):
         if num_identifiers > 1 and identifiers[num_identifiers - 1] != i: output.write(';')
     output.write('}.\n\n')
 
-def is_single_Identifier(self,identifier,words):
-    position=words.index(identifiers[i])
-    return False if words[position+1]=='-' or is_identifier(words[position+1]) else True
-
-def is_Negated(self,identifier,words):
-    position = words.index(identifiers[i])
-    return True if position>0 and words[position - 1] == '-' else False
-
-def identify_Tuples(words,identifiers):
-    for i in words:
-        if is_identifier(words[i]):
-            if is_Negated(words[i],words):
-                if is_single_Identifier(words[i],words):
-                    
-
-    if len(identifiers)%2 == 0:
-        i=0
-        while i < int(len(identifiers)):
-            pos1=words.index(identifiers[i])
-            if pos1>0 and words[pos1-1]=='-':
-                id1 = Identifier(identifiers[i], False)
-                operator = words[pos1-2]
-            else:
-                id1 = Identifier(identifiers[i], True)
-                operator = words[pos1 - 1]
-            pos2 = words.index(identifiers[i+1])
-            if words[pos2 - 1] == '-':
-                id2 = Identifier(identifiers[i+1], False)
-            else:
-                id2 = Identifier(identifiers[i+1], True)
-            tuple=Tuple(id1,id2,True,operator)
-            tuple.print_Tuple()
-            i=i+2
+def find_id1(words):
+    if is_operator(words[0]) and words[0]!='-':
+        build_Tuple(words[1:])
+    elif words[0]=='-' and is_identifier(words[1]):
+        return Tuple(Identifier(words[1],True),Identifier('False',True),False,'V')
     else:
-        i=0
-        while i < int(len(identifiers)):
-            pos1 = words.index(identifiers[i])
-            if pos1 > 0 and words[pos1 - 1] == '-':
-                id1 = Identifier(identifiers[i], False)
-                operator = words[pos1 - 2]
-            else:
-                id1 = Identifier(identifiers[i], True)
-                operator = words[pos1 - 1]
-            pos2 = words.index(identifiers[i + 1])
-            if words[pos2 - 1] == '-':
-                id2 = Identifier(identifiers[i + 1], False)
-            else:
-                id2 = Identifier(identifiers[i + 1], True)
-            tuple = Tuple(id1, id2, True, operator)
-            tuple.print_Tuple()
-            i = i + 2
+        return Tuple(Identifier(words[0],True),Identifier('True',True),True,'V')
 
+def find_id2():
+    pass
 
+def build_Tuple(words):
+    if is_operator(words[0]) and words[0]!='-':
+        id1=find_id1(words[1:])
+        tuple=Tuple(id1,find_id2(),True,words[0])
+        return tuple
+    elif is_identifier(words[0]):
+        id2=find_id1(words[1:])
+
+def build_Iterator(words):
+    reverse_List=words[::-1]
+    stack=[]
+    for word in reverse_List:
+        if is_identifier(word):
+            tuple=Tuple(True,word,True,None,True,'V')
+            stack.append(tuple)
+        elif word == '-':
+            prev_tuple=stack.pop()
+            prev_tuple.setnotid1(False)
+            stack.append(prev_tuple)
+        elif word == '|':
+            tuple1=stack.pop()
+            tuple2=stack.pop()
+            new_tuple=Tuple(tuple1.getNegation(),tuple1,tuple2.getNegation(),tuple2,True,'V')
+            new_tuple.simplify_or()
+            stack.append(new_tuple)
+        elif word == '&':
+            tuple1=stack.pop()
+            tuple2=stack.pop()
+            new_tuple=Tuple(tuple1.getNegation(),tuple1,tuple2.getNegation(),tuple2,True,'&')
+            stack.append(new_tuple)
+        elif word == '>':
+            tuple1=stack.pop()
+            tuple2=stack.pop()
+            new_tuple=Tuple(tuple1.getNegation(),tuple1,tuple2.getNegation(),tuple2,True,'>')
+            new_tuple.simplify_Implication()
+            stack.append(new_tuple)
+        elif word == '=':
+            tuple1=stack.pop()
+            tuple2=stack.pop()
+            new_tuple=Tuple(tuple1.getNegation(),tuple1,tuple2.getNegation(),tuple2,True,'=')
+            new_tuple.simplify_Equivalence()
+            stack.append(new_tuple)
+        elif word == '%':
+            tuple1=stack.pop()
+            tuple2=stack.pop()
+            new_tuple=Tuple(tuple1.getNegation(),tuple1,tuple2.getNegation(),tuple2,True,'%')
+            stack.append(new_tuple)
+    return stack[0]
 
 def analyze_phrase(phrase,output):
     identifiers = []
@@ -168,7 +203,8 @@ def analyze_phrase(phrase,output):
         write_identifiers(output,identifiers,num_identifiers)
         write_comment(output,phrase)
 
-    identify_Tuples(words,identifiers)
+    #build_Tuple(words)
+    build_Iterator(words)
 
 def main():
     input = open("p0.txt", "r")
