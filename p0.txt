@@ -1,3 +1,2 @@
-hola hola2
-linea 1
->
+> | rain - weekend - happy.
+= weekend - workday.

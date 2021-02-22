@@ -92,12 +92,18 @@ class Tuple:
         return tuple
 
     def simplify_Equivalence(self):
-        result1=Tuple(id1,id2,True,'>')
-        result2=Tuple(id2,id1,True,'>')
-        self.setid1(result1.simplify_Implication())
-        self.setid2(result2.simplify_Implication())
-        self.setPositive()
-        self.setOperator('&')
+        if self.getid1().is_one_sided() and self.getid2().is_one_sided():
+            tupleleft=Tuple(self.getid1().getnotid1(),self.getid1().getid1(),self.getid2().getnotid1(),self.getid2().getid1(),True,'&')
+            tupleright=Tuple(not self.getid1().getnotid1(),self.getid1().getid1(),not self.getid2().getnotid1(),self.getid2().getid1(),True,'&')
+            tuple=Tuple(True,tupleleft,True,tupleright,True,'|')
+            return tuple
+        else:
+            result1=Tuple(id1,id2,True,'>')
+            result2=Tuple(id2,id1,True,'>')
+            self.setid1(result1.simplify_Implication())
+            self.setid2(result2.simplify_Implication())
+            self.setPositive()
+            self.setOperator('&')
 
     def simplify_xor(self):
         result1=Tuple(id1,id2,False,'&')
@@ -184,8 +190,8 @@ def build_Iterator(words):
             tuple1=stack.pop()
             tuple2=stack.pop()
             new_tuple=Tuple(tuple1.getNegation(),tuple1,tuple2.getNegation(),tuple2,True,'=')
-            new_tuple.simplify_Equivalence()
-            stack.append(new_tuple)
+            new_tuple2=new_tuple.simplify_Equivalence()
+            stack.append(new_tuple2)
         elif word == '%':
             tuple1=stack.pop()
             tuple2=stack.pop()
