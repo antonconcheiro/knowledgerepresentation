@@ -73,7 +73,7 @@ class Tuple:
             self.notid2 = value
 
     def is_one_sided(self):
-        return True if self.getid2()==None and self.getOperator()=='V' else False
+        return True if self.getid2()==None and self.getOperator()=='|' else False
 
     def deMorgan(self):
         if not self.getNegation() and self.getnotid1() and self.getnotid2() and self.getOperator()=='|':
@@ -88,8 +88,8 @@ class Tuple:
             self.setOperator('|')
 
     def simplify_Implication(self):
-        self.setOperator('|')
-        self.setnotid1(False)
+        tuple = Tuple(False, self.getid1(), self.getid2().getnotid1(),self.getid2(), True, '|')
+        return tuple
 
     def simplify_Equivalence(self):
         result1=Tuple(id1,id2,True,'>')
@@ -107,8 +107,12 @@ class Tuple:
         self.setOperator('&')
 
     def simplify_or(self):
-        if self.getOperator()=='V' and self.getid1().is_one_sided() and self.getid2().is_one_sided():
-            tuple=Tuple(self.getnotid1(),self.getid1().getid1(),self.getnotid2(),self.getid2().getid1(),True,'V')
+        if self.getOperator()=='|' and self.getid1().is_one_sided() and self.getid2().is_one_sided():
+            tuple=Tuple(self.getid1().getnotid1(),self.getid1().getid1(),self.getid2().getnotid1(),self.getid2().getid1(),True,'|')
+            return tuple
+
+    def __repr__(self):
+        return str(self.getNegation())+'('+str(self.getnotid1())+' '+str(self.getid1())+' '+self.getOperator()+' '+str(self.getnotid2())+' '+str(self.getid2())+')'
 
 def is_operator(word):
     symbols = ['&', '|', '-', '>', '=', '%', '0', '1']
@@ -133,9 +137,9 @@ def find_id1(words):
     if is_operator(words[0]) and words[0]!='-':
         build_Tuple(words[1:])
     elif words[0]=='-' and is_identifier(words[1]):
-        return Tuple(Identifier(words[1],True),Identifier('False',True),False,'V')
+        return Tuple(Identifier(words[1],True),Identifier('False',True),False,'|')
     else:
-        return Tuple(Identifier(words[0],True),Identifier('True',True),True,'V')
+        return Tuple(Identifier(words[0],True),Identifier('True',True),True,'|')
 
 def find_id2():
     pass
@@ -153,7 +157,7 @@ def build_Iterator(words):
     stack=[]
     for word in reverse_List:
         if is_identifier(word):
-            tuple=Tuple(True,word,True,None,True,'V')
+            tuple=Tuple(True,word,True,None,True,'|')
             stack.append(tuple)
         elif word == '-':
             prev_tuple=stack.pop()
@@ -162,9 +166,9 @@ def build_Iterator(words):
         elif word == '|':
             tuple1=stack.pop()
             tuple2=stack.pop()
-            new_tuple=Tuple(tuple1.getNegation(),tuple1,tuple2.getNegation(),tuple2,True,'V')
-            new_tuple.simplify_or()
-            stack.append(new_tuple)
+            new_tuple=Tuple(tuple1.getNegation(),tuple1,tuple2.getNegation(),tuple2,True,'|')
+            new_tuple2=new_tuple.simplify_or()
+            stack.append(new_tuple2)
         elif word == '&':
             tuple1=stack.pop()
             tuple2=stack.pop()
@@ -174,8 +178,8 @@ def build_Iterator(words):
             tuple1=stack.pop()
             tuple2=stack.pop()
             new_tuple=Tuple(tuple1.getNegation(),tuple1,tuple2.getNegation(),tuple2,True,'>')
-            new_tuple.simplify_Implication()
-            stack.append(new_tuple)
+            new_tuple2=new_tuple.simplify_Implication()
+            stack.append(new_tuple2)
         elif word == '=':
             tuple1=stack.pop()
             tuple2=stack.pop()
@@ -187,6 +191,7 @@ def build_Iterator(words):
             tuple2=stack.pop()
             new_tuple=Tuple(tuple1.getNegation(),tuple1,tuple2.getNegation(),tuple2,True,'%')
             stack.append(new_tuple)
+        print(stack)
     return stack[0]
 
 def analyze_phrase(phrase,output):
