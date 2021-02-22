@@ -76,19 +76,15 @@ class Tuple:
         return True if self.getid2()==None and self.getOperator()=='|' else False
 
     def deMorgan(self):
-        if not self.getNegation() and self.getnotid1() and self.getnotid2() and self.getOperator()=='|':
-            self.setPositive()
-            self.setnotid1(False)
-            self.setnotid2(False)
-            self.setOperator('&')
-        elif not self.getNegation() and self.getnotid1() and self.getnotid2() and self.getOperator()=='&':
-            self.setPositive()
-            self.setnotid1(False)
-            self.setnotid2(False)
-            self.setOperator('|')
+        if self.getOperator()=='|':
+            tuple=Tuple(not self.getnotid1(),self.getid1(),not self.getnotid2(),self.getid2(),True,'&')
+            return tuple
+        elif self.getOperator()=='&':
+            tuple = Tuple(not self.getnotid1(), self.getid1(), not self.getnotid2(), self.getid2(), True, '|')
+            return tuple
 
     def simplify_Implication(self):
-        tuple = Tuple(False, self.getid1(), self.getid2().getnotid1(),self.getid2(), True, '|')
+        tuple = Tuple(False, self.getid1(), self.getnotid2(),self.getid2(), True, '|')
         return tuple
 
     def simplify_Equivalence(self):
@@ -117,6 +113,53 @@ class Tuple:
             tuple=Tuple(self.getid1().getnotid1(),self.getid1().getid1(),self.getid2().getnotid1(),self.getid2().getid1(),True,'|')
             return tuple
 
+    def simplify(self):
+        if self.getnotid1()!=self.getid1().getNegation():
+            tupleleft=self.getid1().deMorgan()
+        else:
+            tupleleft=self.getid1()
+        if self.getnotid2()!=self.getid2().getNegation():
+            tupleright=self.getid2().deMorgan()
+        else:
+            tupleright=self.getid2()
+        tuple = Tuple(tupleleft.getNegation(), tupleleft, tupleright.getNegation(), tupleright, self.getNegation(), self.getOperator())
+        return tuple
+
+    def expand(self):
+        list = []
+        if self.getOperator() == '|' and self.getid2().is_one_sided():
+            tupleleft = Tuple(self.getid1().getnotid1(), self.getid1().getid1(), self.getid2().getnotid1(),
+                              self.getid2().getid1(), True, self.getOperator())
+            tupleright=Tuple(self.getid1().getnotid2(),self.getid1().getid2(),self.getid2().getnotid1(),self.getid2().getid1(),True,self.getOperator())
+            #tuple=Tuple(tupleleft.getNegation(),tupleleft,tupleright.getNegation(),tupleright,True,'&')
+            list.append(tupleleft)
+            list.append(tupleright)
+            return list
+        elif self.getOperator() == '|':
+            tuple1=Tuple(self.getid1().getnotid1(),self.getid1().getid1(),self.getid2().getnotid1(),self.getid2().getid1(),True,self.getOperator())
+            tuple2=Tuple(self.getid1().getnotid1(),self.getid1().getid1(),self.getid2().getnotid2(),self.getid2().getid2(),True,self.getOperator())
+            tuple3=Tuple(self.getid1().getnotid2(),self.getid1().getid2(),self.getid2().getnotid1(),self.getid2().getid1(),True,self.getOperator())
+            tuple4=Tuple(self.getid1().getnotid2(),self.getid1().getid2(),self.getid2().getnotid2(),self.getid2().getid2(),True,self.getOperator())
+            list.append(tuple1)
+            list.append(tuple2)
+            list.append(tuple3)
+            list.append(tuple4)
+            return list
+
+    def generate_Statement(self):
+        if self.getid1()==self.getid2() and self.getnotid1()!= self.getnotid2():
+            return None
+        elif self.getid1()==self.getid2() and self.getnotid1()== self.getnotid2():
+            return ':- not '+self.getid1()+'.'
+        elif self.getnotid1()==self.getnotid2() and self.getnotid1()==False:
+            return ':- '+self.getid1()+', '+self.getid2()+'.'
+        elif self.getnotid1() == self.getnotid2() and self.getnotid1() == True:
+            return ':- not '+self.getid1()+', not '+self.getid2()+'.'
+        elif self.getnotid1()==False:
+            return ':- not '+self.getid1()+','+self.getid2()+'.'
+        else:
+            return ':- not '+self.getid1()+', '+self.getid2()+'.'
+
     def __repr__(self):
         return str(self.getNegation())+'('+str(self.getnotid1())+' '+str(self.getid1())+' '+self.getOperator()+' '+str(self.getnotid2())+' '+str(self.getid2())+')'
 
@@ -130,14 +173,21 @@ def is_identifier(word):
 def write_comment(output,phrase):
     output.write('% ')
     output.write(phrase)
-    output.write('\n\n')
+    output.write('\n')
 
-def write_identifiers(output,identifiers,num_identifiers):
+def write_identifiers(identifiers,output):
+    #print(identifiers)
     output.write('{')
     for i in identifiers:
         output.write(i)
-        if num_identifiers > 1 and identifiers[num_identifiers - 1] != i: output.write(';')
+        if len(identifiers) > 1 and list(identifiers)[len(identifiers) - 1] != i: output.write(';')
     output.write('}.\n\n')
+
+def write_output(list,output):
+    for i in list:
+        output.write(i)
+        output.write('\n')
+    output.write('\n')
 
 def find_id1(words):
     if is_operator(words[0]) and words[0]!='-':
@@ -197,25 +247,39 @@ def build_Iterator(words):
             tuple2=stack.pop()
             new_tuple=Tuple(tuple1.getNegation(),tuple1,tuple2.getNegation(),tuple2,True,'%')
             stack.append(new_tuple)
-        print(stack)
     return stack[0]
 
+def convert_to_FNC(tuple):
+    print(tuple)
+    tuple=tuple.simplify()
+    list=tuple.expand()
+    print(list)
+    return_list=[]
+    for i in list:
+        sentence=i.generate_Statement()
+        if sentence!=None:
+            return_list.append(sentence)
+    return return_list
+
 def analyze_phrase(phrase,output):
-    identifiers = []
-
-    phrase=phrase[:-1]
+    phrase = phrase[:-1]
     words = phrase.split()
-    for i in range(len(words)):
-        if not is_operator(words[i]) and is_identifier(words[i]) and not any(words[i] in s for s in identifiers):
-            identifiers.append(words[i])
 
-    num_identifiers = len(identifiers)
-    if num_identifiers>0:
-        write_identifiers(output,identifiers,num_identifiers)
-        write_comment(output,phrase)
+    write_comment(output,phrase)
 
     #build_Tuple(words)
-    build_Iterator(words)
+    tuple=build_Iterator(words)
+    list=convert_to_FNC(tuple)
+    write_output(list,output)
+
+def get_identifiers(phrase):
+    identifiers = set([])
+    phrase = phrase[:-1]
+    words = phrase.split()
+    for i in range(len(words)):
+        if not is_operator(words[i]) and is_identifier(words[i]):
+            identifiers.add(words[i])
+    return identifiers
 
 def main():
     input = open("p0.txt", "r")
@@ -226,7 +290,18 @@ def main():
     lines = []
 
     for i in range(num_lines):
-        lines.append(input.readline().rstrip('\n'))
+        line=input.readline().rstrip('\n')
+        if line.strip():
+            lines.append(line)
+
+    identifiers=set([])
+    for i in range(num_lines):
+        new_identifiers=get_identifiers(lines[i])
+        identifiers.update(new_identifiers)
+    write_identifiers(identifiers,output)
+
+
+    for i in range(num_lines):
         analyze_phrase(lines[i],output)
 
 if __name__ =='__main__':
