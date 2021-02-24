@@ -1,8 +1,0 @@
-{hola;hola2}.
-
-% hola hola2
-
-{linea}.
-
-% linea 1
-
