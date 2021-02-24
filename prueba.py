@@ -168,7 +168,7 @@ class Tuple:
         elif self.getnotid1() == self.getnotid2() and self.getnotid1() == True:
             return ':- not '+self.getid1()+', not '+self.getid2()+'.'
         elif self.getnotid1()==False:
-            return ':- '+self.getid1()+', not '+self.getid2()+'.'
+            return ':- not '+self.getid1()+','+self.getid2()+'.'
         else:
             return ':- not '+self.getid1()+', '+self.getid2()+'.'
 
