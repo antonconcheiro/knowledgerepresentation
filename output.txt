@@ -1,0 +1,2 @@
+{workday;rain;a;weekend;happy;b;c}.
+

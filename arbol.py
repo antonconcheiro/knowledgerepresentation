@@ -16,7 +16,7 @@ class BST:
         if node.is_operator() and node.right is not None and node.right.is_operator():
             return True if self.is_the_rightmost_element_of_the_left_subtree_an_identifier(node.right) else False
         elif not node.is_operator() or (node.is_operator() and node.right is not None and not node.right.is_operator()):
-            return True
+            return True #returns True
         else:
             return False #returns False
 
@@ -55,6 +55,32 @@ class BST:
             print(node.root+' ')
             self.auxPrintTree(node.right)
 
+def is_identifier(word):
+    return True if word[0].isalpha() and word[0].islower() else False
+
+def is_operator(self):
+        symbols = ['&', '|', '-', '>', '=', '%', '0', '1']
+        return True if any(self.root in s for s in symbols) else False
+
+def write_comment(output,phrase):
+    output.write('% ')
+    output.write(phrase)
+    output.write('\n')
+
+def write_identifiers(identifiers,output):
+    #print(identifiers)
+    output.write('{')
+    for i in identifiers:
+        output.write(i)
+        if len(identifiers) > 1 and list(identifiers)[len(identifiers) - 1] != i: output.write(';')
+    output.write('}.\n\n')
+
+def write_output(list,output):
+    for i in list:
+        output.write(i)
+        output.write('\n')
+    output.write('\n')
+
 def main():
     input = open("p0.txt", "r")
     output = open('output.txt', 'w')
@@ -69,8 +95,16 @@ def main():
             line = line[:-1]
             for i in line.split():
                 lines.append(i)
+
     print(lines)
     bst=BST()
+
+    identifiers = set([])
+    for i in lines:
+        if is_identifier(i):
+        	identifiers.add(i)
+    write_identifiers(identifiers,output)
+
     for i in lines:
         bst.insert(i)
     bst.printTree()
