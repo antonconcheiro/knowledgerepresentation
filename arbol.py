@@ -8,6 +8,9 @@ class Node:
         symbols = ['&', '|', '-', '>', '=', '%', '0', '1']
         return True if any(self.root in s for s in symbols) else False
 
+    def is_implication(self):
+        return True if (self.root == '>') else False
+
 class BST:
     def __init__(self):
         self.root=None
@@ -55,6 +58,84 @@ class BST:
             print(node.root+' ')
             self.auxPrintTree(node.right)
 
+    def negate(self,node):
+        if node.root == "-":
+            node.root = node.right.root
+            node.left = node.right.left
+            node.right = node.right.right
+        else:
+            newNode = Node(node.root)
+            newNode.right = node.right
+            newNode.left = node.left
+            node.right = newNode
+            node.left = None
+            node.root = "-"
+
+    def simplify(self,node):
+        if node is not None:
+            if node.root == "-" and node.right is not None and node.right.root == "|":
+                node.root = node.right.root
+                node.left = node.right.left
+                node.right = node.right.right
+                self.convert_disjunction(node)
+            if node.root == "-" and node.right is not None and node.right.root == "&":
+                node.root = node.right.root
+                node.left = node.right.left
+                node.right = node.right.right
+                self.convert_conjunction_once(node)
+        if node.left is not None:
+            self.simplify(node.left)
+        if node.right is not None:
+            self.simplify(node.right)
+
+    def convert_implication(self,node):
+        if node is not None:
+            if node.root == ">":
+                node.root = "&"
+                #self.auxPrintTree(node.right)
+                print("arbol izquierdo")
+                self.auxPrintTree(node.left)
+                print("arbol derecho")
+                self.negate(node.right)
+                self.auxPrintTree(node.right)
+                print("arbol total")
+                self.printTree()
+                print("-----------------------------")
+                self.simplify(node)
+        if node.left is not None:
+            self.convert_implication(node.left)
+        if node.right is not None:
+            self.convert_implication(node.right)
+
+    def convert_disjunction(self,node):
+        if node is not None:
+            if node.root == "|":
+                print("found disjunction")
+                node.root = "&"
+                self.negate(node.left)
+                print("arbol izquierdo")
+                self.auxPrintTree(node.left)
+                print("arbol derecho")
+                self.negate(node.right)
+                self.auxPrintTree(node.right)
+                print("arbol total")
+                self.printTree()
+                print("-----------------------------")
+                self.simplify(node)
+        if node.left is not None:
+            self.convert_disjunction(node.left)
+        if node.right is not None:
+            self.convert_disjunction(node.right)
+
+    def convert_conjunction_once(self,node):
+        if node is not None:
+            if node.root == "&":
+                print("found disjunction")
+                node.root = "|"
+                self.negate(node.left)
+                self.negate(node.right)
+                self.simplify(node)
+
 def is_identifier(word):
     return True if word[0].isalpha() and word[0].islower() else False
 
@@ -91,22 +172,30 @@ def main():
 
     for i in range(num_lines):
         line=input.readline().rstrip('\n')
+        write_comment(output,line)
         if line.strip():
             line = line[:-1]
             for i in line.split():
                 lines.append(i)
 
-    print(lines)
-    bst=BST()
-
     identifiers = set([])
     for i in lines:
         if is_identifier(i):
-        	identifiers.add(i)
+            identifiers.add(i)
     write_identifiers(identifiers,output)
+
+    print(lines)
+    bst=BST()
 
     for i in lines:
         bst.insert(i)
+    bst.printTree()
+
+    print("-----------------------------")
+    bst.convert_implication(bst.root)
+    #bst.printTree()
+    print("-----------------------------")
+    bst.convert_disjunction(bst.root)
     bst.printTree()
 
 if __name__ =='__main__':

@@ -1,2 +1,3 @@
-{workday;rain;a;weekend;happy;b;c}.
+% | > > a b d c.
+{c;d;b;a}.
 
