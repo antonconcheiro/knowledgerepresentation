@@ -1,3 +1,5 @@
+import copy
+
 class Node:
     def __init__(self,data):
         self.root=data
@@ -63,6 +65,7 @@ class BST:
             node.root = node.right.root
             node.left = node.right.left
             node.right = node.right.right
+            return node
         else:
             newNode = Node(node.root)
             newNode.right = node.right
@@ -70,6 +73,19 @@ class BST:
             node.right = newNode
             node.left = None
             node.root = "-"
+            return node
+
+    def deMorgan(self,node):
+        if node is not None:
+            if node.root=='-' and node.left==None and node.right is not None and node.right.is_operator():
+                if node.right.root=='&':node.root='|'
+                elif node.right.root=='|':node.root='&'
+                if node.right.left is not None:node.left=self.negate(node.right.left)
+                if node.right.right is not None:node.right=self.negate(node.right.right)
+        if node.left is not None:
+            self.deMorgan(node.left)
+        if node.right is not None:
+            self.deMorgan(node.right)
 
     def simplify(self,node):
         if node is not None:
@@ -91,21 +107,39 @@ class BST:
     def convert_implication(self,node):
         if node is not None:
             if node.root == ">":
-                node.root = "&"
+                node.root = "|"
                 #self.auxPrintTree(node.right)
-                print("arbol izquierdo")
-                self.auxPrintTree(node.left)
-                print("arbol derecho")
-                self.negate(node.right)
-                self.auxPrintTree(node.right)
-                print("arbol total")
-                self.printTree()
-                print("-----------------------------")
-                self.simplify(node)
+                #print("arbol izquierdo")
+                self.negate(node.left)
+                #self.auxPrintTree(node.left)
+                #print("arbol derecho")
+                #self.negate(node.right)
+                #self.auxPrintTree(node.right)
+                #print("arbol total")
+                #self.printTree()
+                #print("-----------------------------")
+                #self.simplify(node)
         if node.left is not None:
             self.convert_implication(node.left)
         if node.right is not None:
             self.convert_implication(node.right)
+
+    def convert_equivalence(self,node):
+        if node is not None:
+            if node.root == "=":
+                node.root = "|"
+                treeleft=Node('&')
+                treeleft.left=node.left
+                treeleft.right=node.right
+                treeright=Node('&')
+                treeright.left=self.negate(node.left)
+                treeright.right=self.negate(node.right)
+                node.left=treeleft
+                node.right=treeright
+        if node.left is not None:
+            self.convert_equivalence(node.left)
+        if node.right is not None:
+            self.convert_equivalence(node.right)
 
     def convert_disjunction(self,node):
         if node is not None:
@@ -135,6 +169,92 @@ class BST:
                 self.negate(node.left)
                 self.negate(node.right)
                 self.simplify(node)
+
+    def distribution(self,node):
+        if node is not None:
+            if node.root=='|' and node.left is not None and node.right is not None and node.left.root=='&' and node.right.root=='&':
+                node.root='&'
+                tree1=Node('|')
+                tree1.left=node.left.left
+                tree1.right=node.right.left
+                tree2 = Node('|')
+                tree2.left = node.left.left
+                tree2.right = node.right.right
+                tree3 = Node('|')
+                tree3.left = node.left.right
+                tree3.right = node.right.left
+                tree4 = Node('|')
+                tree4.left = node.left.right
+                tree4.right = node.right.right
+                treeleft=Node('&')
+                treeleft.left=tree1
+                treeleft.right=tree2
+                treeright = Node('&')
+                treeright.left = tree3
+                treeright.right = tree4
+                node.left=treeleft
+                node.right=treeright
+            elif node.root=='|' and node.left is not None and node.right is not None and node.left.root=='&':
+                node.root='&'
+                treeleft=Node('|')
+                treeleft.left=node.left.left
+                treeleft.right=node.right
+                treeright=Node('|')
+                treeright.left=node.left.right
+                treeright.right=node.right
+                node.left=treeleft
+                node.right=treeright
+        if node.left is not None:
+            self.distribution(node.left)
+        if node.right is not None:
+            self.distribution(node.right)
+
+    def is_identifier(self,node):
+        if node is not None:
+            return True if not node.is_operator() or (node.root=='-' and node.left is None and node.right is not None and not node.right.is_operator()) else False
+
+    def getsolutionsaux(self,node,solution):
+        if node.root=='&':
+            if node.left is not None:
+                if self.is_identifier(node.left) and node.left.root=='-':
+                    solution=solution+node.left.right.root+', '
+                elif self.is_identifier(node.left):
+                    solution=solution+'not '+node.left.root+', '
+                else:
+                    solution=solution+ self.getsolutionsaux(node.left,solution)+';'
+            if node.right is not None:
+                if self.is_identifier(node.right) and node.right.root=='-':
+                    solution=solution+node.right.right.root+', '
+                elif self.is_identifier(node.right):
+                    solution=solution+'not '+node.right.root+', '
+                else:
+                    solution=solution+ self.getsolutionsaux(node.right,solution)+';'
+        elif node.root=='|':
+            if node.left is not None:
+                if self.is_identifier(node.left) and node.left.root=='-':
+                    solution=solution+node.left.right.root+', '
+                elif self.is_identifier(node.left):
+                    solution=solution+'not '+node.left.root+', '
+                else:
+                    solution=solution+ self.getsolutionsaux(node.left,solution)+';'
+            if node.right is not None:
+                if self.is_identifier(node.right) and node.right.root=='-':
+                    solution=solution+node.right.right.root+', '
+                elif self.is_identifier(node.right):
+                    solution=solution+'not '+node.right.root+', '
+                else:
+                    solution=solution+ self.getsolutionsaux(node.right,solution)+';'
+        return solution
+
+    def getsolutions(self,node):
+        result=set([])
+        if node:
+            solutions=self.getsolutionsaux(node,"").split(';')
+            for solution in solutions[:-1]:
+                result.add(':- '+solution[:-2]+'.')
+        return result
+
+
 
 def is_identifier(word):
     return True if word[0].isalpha() and word[0].islower() else False
@@ -171,12 +291,14 @@ def main():
     lines = []
 
     for i in range(num_lines):
+        auxline=[]
         line=input.readline().rstrip('\n')
         write_comment(output,line)
         if line.strip():
             line = line[:-1]
             for i in line.split():
-                lines.append(i)
+                auxline.append(i)
+            lines.append(auxline)
 
     identifiers = set([])
     for i in lines:
@@ -185,18 +307,39 @@ def main():
     write_identifiers(identifiers,output)
 
     print(lines)
-    bst=BST()
 
-    for i in lines:
-        bst.insert(i)
-    bst.printTree()
+    list_solutions=[]
 
-    print("-----------------------------")
-    bst.convert_implication(bst.root)
-    #bst.printTree()
-    print("-----------------------------")
-    bst.convert_disjunction(bst.root)
-    bst.printTree()
+    for words in lines:
+        bst = BST()
+        print("----------------------------- Input:")
+        print(words)
+        for word in words:
+            bst.insert(word)
+        print("----------------------------- New Tree:")
+        bst.printTree()
+
+        print("----------------------------- Convert implication:")
+        bst.convert_implication(bst.root)
+        bst.printTree()
+        print("----------------------------- Convert equivalence:")
+        bst.convert_equivalence(bst.root)
+        bst.printTree()
+        print("----------------------------- deMorgan:")
+        bst.deMorgan(bst.root)
+        bst.printTree()
+        print("----------------------------- Distribution:")
+        bst.distribution(bst.root)
+        bst.printTree()
+        print("----------------------------- Final:")
+        #bst.convert_disjunction(bst.root)
+        bst.printTree()
+
+        print("----------------------------- Output:")
+        print(bst.getsolutions(bst.root))
+        list_solutions.append(bst.getsolutions(bst.root))
+        print("\n\n")
+    print(list_solutions)
 
 if __name__ =='__main__':
     main()

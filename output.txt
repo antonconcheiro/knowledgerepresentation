@@ -1,3 +1,4 @@
-% | > > a b d c.
-{c;d;b;a}.
+% > | rain - weekend - happy.
+% = weekend - workday.
+{}.
 
