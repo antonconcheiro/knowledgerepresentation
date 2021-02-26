@@ -50,6 +50,15 @@ class BST:
         else:
             self.recursBST(self.root,data)
 
+    def copy(self,node):
+        if node:
+            copynode=Node(node.root)
+            if node.left:
+                copynode.left=self.copy(node.left)
+            if node.right:
+                copynode.right = self.copy(node.right)
+            return copynode
+
     def printTree(self):
         if self.root is not None:
             self.auxPrintTree(self.root)
@@ -129,11 +138,11 @@ class BST:
             if node.root == "=":
                 node.root = "|"
                 treeleft=Node('&')
-                treeleft.left=node.left
-                treeleft.right=node.right
+                treeleft.left=self.copy(node.left)
+                treeleft.right=self.copy(node.right)
                 treeright=Node('&')
-                treeright.left=self.negate(node.left)
-                treeright.right=self.negate(node.right)
+                treeright.left=self.copy(self.negate(node.left))
+                treeright.right=self.copy(self.negate(node.right))
                 node.left=treeleft
                 node.right=treeright
         if node.left is not None:
@@ -251,7 +260,8 @@ class BST:
         if node:
             solutions=self.getsolutionsaux(node,"").split(';')
             for solution in solutions[:-1]:
-                result.add(':- '+solution[:-2]+'.')
+                if solution!="":
+                    result.add(':- '+solution[:-2]+'.')
         return result
 
 
