@@ -1,2 +1,1 @@
-> | rain - weekend - happy.
-= weekend - workday.
+- | & | a b c d.

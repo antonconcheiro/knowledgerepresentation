@@ -1,5 +1,3 @@
-import copy
-
 class Node:
     def __init__(self,data):
         self.root=data
@@ -9,9 +7,6 @@ class Node:
     def is_operator(self):
         symbols = ['&', '|', '-', '>', '=', '%', '0', '1']
         return True if any(self.root in s for s in symbols) else False
-
-    def is_implication(self):
-        return True if (self.root == '>') else False
 
 class BST:
     def __init__(self):
@@ -72,16 +67,17 @@ class BST:
             print(node.root+' ')
             self.auxPrintTree(node.right)
 
+    def replace(self, node, nodeR):
+        node.root = nodeR.root
+        node.left = nodeR.left
+        node.right = nodeR.right
+
     def negate(self,node):
         if node.root == "-":
-            node.root = node.right.root
-            node.left = node.right.left
-            node.right = node.right.right
+            self.replace(node,node.right)
             return node
         else:
-            newNode = Node(node.root)
-            newNode.right = node.right
-            newNode.left = node.left
+            newNode = self.copy(node)
             node.right = newNode
             node.left = None
             node.root = "-"
@@ -102,14 +98,10 @@ class BST:
     def simplify(self,node):
         if node is not None:
             if node.root == "-" and node.right is not None and node.right.root == "|":
-                node.root = node.right.root
-                node.left = node.right.left
-                node.right = node.right.right
+                self.replace(node,node.right)
                 self.convert_disjunction(node)
             if node.root == "-" and node.right is not None and node.right.root == "&":
-                node.root = node.right.root
-                node.left = node.right.left
-                node.right = node.right.right
+                self.replace(node,node.right)
                 self.convert_conjunction_once(node)
         if node.left is not None:
             self.simplify(node.left)
@@ -120,17 +112,7 @@ class BST:
         if node is not None:
             if node.root == ">":
                 node.root = "|"
-                #self.auxPrintTree(node.right)
-                #print("arbol izquierdo")
                 self.negate(node.left)
-                #self.auxPrintTree(node.left)
-                #print("arbol derecho")
-                #self.negate(node.right)
-                #self.auxPrintTree(node.right)
-                #print("arbol total")
-                #self.printTree()
-                #print("-----------------------------")
-                #self.simplify(node)
         if node.left is not None:
             self.convert_implication(node.left)
         if node.right is not None:
@@ -281,10 +263,6 @@ class BST:
 
 def is_identifier(word):
     return True if word[0].isalpha() and word[0].islower() else False
-
-def is_operator(self):
-        symbols = ['&', '|', '-', '>', '=', '%', '0', '1']
-        return True if any(self.root in s for s in symbols) else False
 
 def write_comment(output,list):
     output.write('% ')
