@@ -30,7 +30,10 @@ class BST:
             node=Node(data)
             self.root=node
         elif node.root=='-':
-            node.right=Node(data)
+            if not node.right:
+                node.right=Node(data)
+            else:
+                self.recursBST(node.right,data)
         elif (node.left is not None) and self.is_the_rightmost_element_of_the_left_subtree_an_identifier(node.left):
             if node.right is None:
                 node.right=Node(data)
@@ -222,6 +225,17 @@ class BST:
         if node is not None:
             return True if not node.is_operator() or (node.root=='-' and node.left is None and node.right is not None and not node.right.is_operator()) else False
 
+    def is_True(self,solution):
+        solutions=solution.split(',')[:-1]
+        if len(solutions)==2:
+            if ('not' in solutions[0] and 'not' not in solutions[1]) or ('not' not in solutions[0] and 'not' in solutions[1]):
+                newset=[]
+                for x in solutions:
+                    newset.append(x.replace('not','').strip())
+                if(newset[0]==newset[1]):
+                    return True
+        return False
+
     def getsolutionsaux(self,node,solution):
         if node.root=='&':
             if node.left is not None:
@@ -230,14 +244,14 @@ class BST:
                 elif self.is_identifier(node.left):
                     solution=solution+'not '+node.left.root+', '
                 else:
-                    solution=solution+ self.getsolutionsaux(node.left,solution)+';'
+                    solution=self.getsolutionsaux(node.left,solution)+';'
             if node.right is not None:
                 if self.is_identifier(node.right) and node.right.root=='-':
                     solution=solution+node.right.right.root+', '
                 elif self.is_identifier(node.right):
                     solution=solution+'not '+node.right.root+', '
                 else:
-                    solution=solution+ self.getsolutionsaux(node.right,solution)+';'
+                    solution=self.getsolutionsaux(node.right,solution)+';'
         elif node.root=='|':
             if node.left is not None:
                 if self.is_identifier(node.left) and node.left.root=='-':
@@ -245,14 +259,14 @@ class BST:
                 elif self.is_identifier(node.left):
                     solution=solution+'not '+node.left.root+', '
                 else:
-                    solution=solution+ self.getsolutionsaux(node.left,solution)+';'
+                    solution=self.getsolutionsaux(node.left,solution)+';'
             if node.right is not None:
                 if self.is_identifier(node.right) and node.right.root=='-':
                     solution=solution+node.right.right.root+', '
                 elif self.is_identifier(node.right):
                     solution=solution+'not '+node.right.root+', '
                 else:
-                    solution=solution+ self.getsolutionsaux(node.right,solution)+';'
+                    solution=self.getsolutionsaux(node.right,solution)+';'
         return solution
 
     def getsolutions(self,node):
@@ -261,10 +275,9 @@ class BST:
             solutions=self.getsolutionsaux(node,"").split(';')
             for solution in solutions[:-1]:
                 if solution!="":
-                    result.add(':- '+solution[:-2]+'.')
-        return result
-
-
+                    if not self.is_True(solution):
+                        result.add(':- '+solution[:-2]+'.')
+        return list(result)
 
 def is_identifier(word):
     return True if word[0].isalpha() and word[0].islower() else False
@@ -273,10 +286,11 @@ def is_operator(self):
         symbols = ['&', '|', '-', '>', '=', '%', '0', '1']
         return True if any(self.root in s for s in symbols) else False
 
-def write_comment(output,phrase):
+def write_comment(output,list):
     output.write('% ')
-    output.write(phrase)
-    output.write('\n')
+    for word in list[:-1]:
+        output.write(word+' ')
+    output.write(list[-1]+'.\n')
 
 def write_identifiers(identifiers,output):
     #print(identifiers)
@@ -303,7 +317,6 @@ def main():
     for i in range(num_lines):
         auxline=[]
         line=input.readline().rstrip('\n')
-        write_comment(output,line)
         if line.strip():
             line = line[:-1]
             for i in line.split():
@@ -311,19 +324,19 @@ def main():
             lines.append(auxline)
 
     identifiers = set([])
-    for i in lines:
-        if is_identifier(i):
-            identifiers.add(i)
+    for words in lines:
+        for word in words:
+            if is_identifier(word):
+                identifiers.add(word)
     write_identifiers(identifiers,output)
 
     print(lines)
-
-    list_solutions=[]
 
     for words in lines:
         bst = BST()
         print("----------------------------- Input:")
         print(words)
+        write_comment(output,words)
         for word in words:
             bst.insert(word)
         print("----------------------------- New Tree:")
@@ -347,9 +360,9 @@ def main():
 
         print("----------------------------- Output:")
         print(bst.getsolutions(bst.root))
-        list_solutions.append(bst.getsolutions(bst.root))
+        list_solutions=bst.getsolutions(bst.root)
+        write_output(list_solutions,output)
         print("\n\n")
-    print(list_solutions)
 
 if __name__ =='__main__':
     main()

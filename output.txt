@@ -1,4 +1,10 @@
+{workday;happy;weekend;rain}.
+
 % > | rain - weekend - happy.
+:- rain, happy.
+:- not weekend, happy.
+
 % = weekend - workday.
-{}.
+:- not weekend, not workday.
+:- workday, weekend.
 
