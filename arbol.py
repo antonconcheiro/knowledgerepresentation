@@ -241,7 +241,7 @@ class BST:
                 elif self.is_identifier(node.left):
                     solution=solution+'not '+node.left.root+', '
                 else:
-                    solution=self.getsolutionsaux(node.left,solution)+';'
+                    solution=self.getsolutionsaux(node.left,solution)
             if node.right is not None:
                 if self.is_identifier(node.right) and node.right.root=='-':
                     solution=solution+node.right.right.root+', '
@@ -255,7 +255,7 @@ class BST:
         result=set([])
         if node:
             solutions=self.getsolutionsaux(node,"").split(';')
-            for solution in solutions[:-1]:
+            for solution in solutions:
                 if solution!="":
                     if not self.is_True(solution):
                         result.add(':- '+solution[:-2]+'.')
