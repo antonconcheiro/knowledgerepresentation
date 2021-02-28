@@ -5,7 +5,7 @@ class Node:
         self.right=None
 
     def is_operator(self):
-        symbols = ['&', '|', '-', '>', '=', '%', '0', '1']
+        symbols = ['&', '|', '-', '>', '=', '%']
         return True if any(self.root in s for s in symbols) else False
 
 class BST:
