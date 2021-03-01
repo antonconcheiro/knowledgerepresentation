@@ -1,13 +1,7 @@
-{h;r;w;tv}.
+{a;b}.
 
-% > w - tv.
-:- w, tv.
-
-% > & r - w h.
-:- r, not w, not h.
-
-% & tv - h.
-:- not tv, h.
-
-% - r.
+% % a b.
+:- b, b.
+:- b, a.
+:- not a, b.
 

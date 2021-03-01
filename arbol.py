@@ -126,6 +126,23 @@ class BST:
         if node.right is not None:
             self.convert_implication(node.right)
 
+    def convert_xor(self,node):
+        if node is not None:
+            if node.root == "%":
+                node.root = "|"
+                treeleft=Node('&')
+                treeleft.left=self.copy(node.left)
+                treeleft.right=self.copy(self.negate(node.right))
+                treeright=Node('&')
+                treeright.left=self.copy(self.negate(node.left))
+                treeright.right=self.copy(node.right)
+                node.left=treeleft
+                node.right=treeright
+        if node.left is not None:
+            self.convert_xor(node.left)
+        if node.right is not None:
+            self.convert_xor(node.right)
+
     def convert_equivalence(self,node):
         if node is not None:
             if node.root == "=":
@@ -363,6 +380,9 @@ def main():
         bst.printTree()
         print("----------------------------- Convert equivalence:")
         bst.convert_equivalence(bst.root)
+        bst.printTree()
+        print("----------------------------- Convert XOR:")
+        bst.convert_xor(bst.root)
         bst.printTree()
         print("----------------------------- deMorgan:")
         bst.deMorgan(bst.root)
