@@ -218,6 +218,39 @@ class BST:
                     return True
         return False
 
+    def simplify01(self,node):
+        if node and node.left and node.right:
+            if node.root=='|':
+                if (node.left.root=='0') or (node.left.root=='-' and node.left.right and node.left.right.root=='1'):
+                    node.root=node.right.root
+                    node.left=node.right.left
+                    node.right=node.right.right
+                elif(node.right.root=='0') or (node.right.root=='-' and node.right.right and node.right.right.root=='1'):
+                    node.root=node.left.root
+                    node.right = node.left.right
+                    node.left=node.left.left
+                elif (node.left.root=='1' or node.right.root=='1') or (node.left.root=='-' and node.left.right and node.left.right.root=='0') or (node.right.root=='-' and node.right.right and node.right.right.root=='0'):
+                    node.root='1'
+                    node.left=None
+                    node.right=None
+            elif node.root=='&':
+                if (node.left.root=='1') or (node.left.root=='-' and node.left.right and node.left.right.root=='0'):
+                    node.root=node.right.root
+                    node.left=node.right.left
+                    node.right=node.right.right
+                elif(node.right.root=='1') or (node.right.root=='-' and node.right.right and node.right.right.root=='0'):
+                    node.root=node.left.root
+                    node.right = node.left.right
+                    node.left=node.left.left
+                elif (node.left.root=='0' or node.right.root=='0') or (node.left.root=='-' and node.left.right and node.left.right.root=='1') or (node.right.root=='-' and node.right.right and node.right.right.root=='1'):
+                    node.root='0'
+                    node.left=None
+                    node.right=None
+        if node.left:
+            self.simplify01(node.left)
+        if node.right:
+            self.simplify01(node.right)
+
     def getsolutionsaux(self,node,solution):
         if node.root=='&':
             if node.left is not None:
@@ -328,6 +361,9 @@ def main():
         bst.printTree()
         print("----------------------------- deMorgan:")
         bst.deMorgan(bst.root)
+        bst.printTree()
+        print("----------------------------- simplify01:")
+        bst.simplify01(bst.root)
         bst.printTree()
         print("----------------------------- Distribution:")
         bst.distribution(bst.root)
