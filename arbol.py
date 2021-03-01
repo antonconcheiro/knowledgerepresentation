@@ -164,17 +164,9 @@ class BST:
     def convert_disjunction(self,node):
         if node is not None:
             if node.root == "|":
-                print("found disjunction")
                 node.root = "&"
                 self.negate(node.left)
-                print("arbol izquierdo")
-                self.auxPrintTree(node.left)
-                print("arbol derecho")
                 self.negate(node.right)
-                self.auxPrintTree(node.right)
-                print("arbol total")
-                self.printTree()
-                print("-----------------------------")
                 self.simplify(node)
         if node.left is not None:
             self.convert_disjunction(node.left)
@@ -305,6 +297,10 @@ class BST:
                     solution=solution+'not '+node.right.root+', '
                 else:
                     solution=self.getsolutionsaux(node.right,solution)+';'
+        elif node.root=='-':
+            solution=solution+node.right.root+'  ;'
+        elif node.root.is_identifier():
+            solution=solution+'not '+node.root+'  ;'
         return solution
 
     def getsolutions(self,node):
@@ -327,7 +323,6 @@ def write_comment(output,list):
     output.write(list[-1]+'.\n')
 
 def write_identifiers(identifiers,output):
-    #print(identifiers)
     output.write('{')
     for i in identifiers:
         output.write(i)
@@ -341,8 +336,8 @@ def write_output(list,output):
     output.write('\n')
 
 def main():
-    input = open("p0.txt", "r")
-    output = open('output.txt', 'w')
+    input = open("input.txt", "r")
+    output = open('output.lp', 'w')
     num_lines = sum(1 for line in input)
     input.seek(0)
 
