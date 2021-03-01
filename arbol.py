@@ -67,6 +67,14 @@ class BST:
             print(node.root+' ')
             self.auxPrintTree(node.right)
 
+    def find1or0(self, node, count = 0):
+        if node is None:
+            return count
+        elif node.root == "1" or node.root == "0":
+            return self.find1or0(node.left, self.find1or0(node.right, count + 1))
+        else:
+            return self.find1or0(node.left, self.find1or0(node.right, count))
+
     def replace(self, node, nodeR):
         node.root = nodeR.root
         node.left = nodeR.left
@@ -164,23 +172,6 @@ class BST:
                 self.negate(node.right)
                 self.simplify(node)
 
-    def convert_1(self,node):
-        if node is not None:
-            if node.root == "|":
-                if node.right.root is not None and node.right.root == "1":
-                    self.replace(node,Node("1"))
-                elif node.left.root is not None and node.left.root == "1":
-                    self.replace(node,Node("1"))
-            elif node.root == "&":
-                if node.right.root is not None and node.right.root == "1":
-                    self.replace(node,node.left)
-                elif node.left.root is not None and node.left.root == "1":
-                    self.replace(node,node.right)
-        if node.left is not None:
-            self.convert_1(node.left)
-        if node.right is not None:
-            self.convert_1(node.right)
-
     def distribution(self,node):
         if node is not None:
             if node.root=='|' and node.left is not None and node.right is not None and node.left.root=='&' and node.right.root=='&':
@@ -239,34 +230,31 @@ class BST:
         if node and node.left and node.right:
             if node.root=='|':
                 if (node.left.root=='0') or (node.left.root=='-' and node.left.right and node.left.right.root=='1'):
-                    node.root=node.right.root
-                    node.left=node.right.left
-                    node.right=node.right.right
+                    self.replace(node, node.right)
                 elif(node.right.root=='0') or (node.right.root=='-' and node.right.right and node.right.right.root=='1'):
-                    node.root=node.left.root
-                    node.right = node.left.right
-                    node.left=node.left.left
+                    self.replace(node, node.left)
                 elif (node.left.root=='1' or node.right.root=='1') or (node.left.root=='-' and node.left.right and node.left.right.root=='0') or (node.right.root=='-' and node.right.right and node.right.right.root=='0'):
-                    node.root='1'
-                    node.left=None
-                    node.right=None
+                    self.replace(node,Node("1"))
             elif node.root=='&':
                 if (node.left.root=='1') or (node.left.root=='-' and node.left.right and node.left.right.root=='0'):
-                    node.root=node.right.root
-                    node.left=node.right.left
-                    node.right=node.right.right
+                    self.replace(node, node.right)
                 elif(node.right.root=='1') or (node.right.root=='-' and node.right.right and node.right.right.root=='0'):
-                    node.root=node.left.root
-                    node.right = node.left.right
-                    node.left=node.left.left
+                    self.replace(node, node.left)
                 elif (node.left.root=='0' or node.right.root=='0') or (node.left.root=='-' and node.left.right and node.left.right.root=='1') or (node.right.root=='-' and node.right.right and node.right.right.root=='1'):
-                    node.root='0'
-                    node.left=None
-                    node.right=None
+                    self.replace(node,Node("0"))
         if node.left:
             self.simplify01(node.left)
         if node.right:
             self.simplify01(node.right)
+
+    def eliminate10(self,node):
+        if self.find1or0(node) == 0 or self.find1or0(node) == 1:
+            self.simplify01(node)
+            return
+        else:
+            self.simplify01(node)
+            self.eliminate10(node)
+
 
     def getsolutionsaux(self,node,solution):
         if node.root=='&':
@@ -376,14 +364,11 @@ def main():
         print("----------------------------- Convert equivalence:")
         bst.convert_equivalence(bst.root)
         bst.printTree()
-        print("----------------------------- convert 1:")
-        bst.convert_1(bst.root)
-        bst.printTree()
         print("----------------------------- deMorgan:")
         bst.deMorgan(bst.root)
         bst.printTree()
-        print("----------------------------- simplify01:")
-        bst.simplify01(bst.root)
+        print("----------------------------- Simplify 0 1:")
+        bst.eliminate10(bst.root)
         bst.printTree()
         print("----------------------------- Distribution:")
         bst.distribution(bst.root)
