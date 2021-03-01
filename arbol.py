@@ -131,11 +131,12 @@ class BST:
             if node.root == "%":
                 node.root = "|"
                 treeleft=Node('&')
-                treeleft.left=self.copy(node.left)
-                treeleft.right=self.copy(self.negate(node.right))
                 treeright=Node('&')
-                treeright.left=self.copy(self.negate(node.left))
+                treeleft.left=self.copy(node.left)
                 treeright.right=self.copy(node.right)
+                treeleft.right=self.copy(self.negate(node.right))
+                treeright.left=self.copy(self.negate(node.left))
+
                 node.left=treeleft
                 node.right=treeright
         if node.left is not None:

@@ -1,7 +1,6 @@
 {a;b}.
 
 % % a b.
-:- b, b.
+:- not a, not b.
 :- b, a.
-:- not a, b.
 
