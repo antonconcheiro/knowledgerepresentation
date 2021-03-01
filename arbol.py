@@ -190,30 +190,30 @@ class BST:
                 self.negate(node.right)
                 self.simplify(node)
 
+    def depth(self,node):
+        return max(self.depth(node.left) if node.left else 0, self.depth(node.right) if node.right else 0) + 1
+
     def distribution(self,node):
         if node is not None:
-            if node.root=='|' and node.left is not None and node.right is not None and node.left.root=='&' and node.right.root=='&':
-                node.root='&'
-                tree1=Node('|')
-                tree1.left=node.left.left
-                tree1.right=node.right.left
-                tree2 = Node('|')
-                tree2.left = node.left.left
-                tree2.right = node.right.right
-                tree3 = Node('|')
-                tree3.left = node.left.right
-                tree3.right = node.right.left
-                tree4 = Node('|')
-                tree4.left = node.left.right
-                tree4.right = node.right.right
-                treeleft=Node('&')
-                treeleft.left=tree1
-                treeleft.right=tree2
-                treeright = Node('&')
-                treeright.left = tree3
-                treeright.right = tree4
-                node.left=treeleft
-                node.right=treeright
+            if node.root=='|' and node.left is not None and node.right is not None and (node.left.root=='&' or node.right.root=='&'):
+                tree1 = Node(node.root)
+                tree2 = Node(node.root)
+                if self.depth(node.left)> self.depth(node.right) and node.left.root=='&':
+                    node.root = node.left.root
+                    tree1.left = node.left.left
+                    tree1.right = node.right
+                    tree2.left = node.left.right
+                    tree2.right = node.right
+                    node.left = tree1
+                    node.right = tree2
+                elif node.right.root=='&':
+                    node.root = node.right.root
+                    tree1.left = node.left
+                    tree1.right = node.right.left
+                    tree2.left = node.left
+                    tree2.right = node.right.right
+                    node.left = tree1
+                    node.right = tree2
             elif node.root=='|' and node.left is not None and node.right is not None and node.left.root=='&':
                 node.root='&'
                 treeleft=Node('|')
