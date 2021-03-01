@@ -164,6 +164,23 @@ class BST:
                 self.negate(node.right)
                 self.simplify(node)
 
+    def convert_1(self,node):
+        if node is not None:
+            if node.root == "|":
+                if node.right.root is not None and node.right.root == "1":
+                    self.replace(node,Node("1"))
+                elif node.left.root is not None and node.left.root == "1":
+                    self.replace(node,Node("1"))
+            elif node.root == "&":
+                if node.right.root is not None and node.right.root == "1":
+                    self.replace(node,node.left)
+                elif node.left.root is not None and node.left.root == "1":
+                    self.replace(node,node.right)
+        if node.left is not None:
+            self.convert_1(node.left)
+        if node.right is not None:
+            self.convert_1(node.right)
+
     def distribution(self,node):
         if node is not None:
             if node.root=='|' and node.left is not None and node.right is not None and node.left.root=='&' and node.right.root=='&':
@@ -358,6 +375,9 @@ def main():
         bst.printTree()
         print("----------------------------- Convert equivalence:")
         bst.convert_equivalence(bst.root)
+        bst.printTree()
+        print("----------------------------- convert 1:")
+        bst.convert_1(bst.root)
         bst.printTree()
         print("----------------------------- deMorgan:")
         bst.deMorgan(bst.root)

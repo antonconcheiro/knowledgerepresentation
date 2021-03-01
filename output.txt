@@ -1,8 +1,4 @@
-{a;b;d;c}.
+{a}.
 
-% = > & a - b 0 | c - d.
-:- not c, d, not a, b.
-:- a, not b, c, not d.
-:- a, not b, not a, b.
-:- not c, d, c, not d.
+% | a 1.
 
