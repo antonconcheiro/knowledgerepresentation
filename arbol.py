@@ -67,13 +67,15 @@ class BST:
             print(node.root+' ')
             self.auxPrintTree(node.right)
 
-    def find1or0(self, node, count = 0):
-        if node is None:
-            return count
-        elif node.root == "1" or node.root == "0":
-            return self.find1or0(node.left, self.find1or0(node.right, count + 1))
-        else:
-            return self.find1or0(node.left, self.find1or0(node.right, count))
+    def printTreeP(self):
+        if self.root is not None:
+            self.auxPrintTreeP(self.root)
+
+    def auxPrintTreeP(self,node):
+        if node is not None:
+            print(node.root+' ')
+            self.auxPrintTreeP(node.left)
+            self.auxPrintTreeP(node.right)
 
     def replace(self, node, nodeR):
         node.root = nodeR.root
@@ -136,7 +138,6 @@ class BST:
                 treeright.right=self.copy(node.right)
                 treeleft.right=self.copy(self.negate(node.right))
                 treeright.left=self.copy(self.negate(node.left))
-
                 node.left=treeleft
                 node.right=treeright
         if node.left is not None:
@@ -185,6 +186,14 @@ class BST:
     def depth(self,node):
         return max(self.depth(node.left) if node.left else 0, self.depth(node.right) if node.right else 0) + 1
 
+    def do_distribution(self,node):
+        prevTree = self.getlist()
+        self.distribution(node)
+        actTree = self.getlist()
+        if prevTree != actTree:
+            self.do_distribution(node) 
+         
+
     def distribution(self,node):
         if node is not None:
             if node.root=='|' and node.left is not None and node.right is not None and (node.left.root=='&' or node.right.root=='&'):
@@ -225,17 +234,6 @@ class BST:
         if node is not None:
             return True if not node.is_operator() or (node.root=='-' and node.left is None and node.right is not None and not node.right.is_operator()) else False
 
-    def is_True(self,solution):
-        solutions=solution.split(',')[:-1]
-        if len(solutions)==2:
-            if ('not' in solutions[0] and 'not' not in solutions[1]) or ('not' not in solutions[0] and 'not' in solutions[1]):
-                newset=[]
-                for x in solutions:
-                    newset.append(x.replace('not','').strip())
-                if(newset[0]==newset[1]):
-                    return True
-        return False
-
     def simplify01(self,node):
         if node and node.left and node.right:
             if node.root=='|':
@@ -258,60 +256,35 @@ class BST:
             self.simplify01(node.right)
 
     def eliminate10(self,node):
-        if self.find1or0(node) == 0 or self.find1or0(node) == 1:
-            self.simplify01(node)
-            return
-        else:
-            self.simplify01(node)
+        self.simplify01(node)
+        prevTree = self.getlist()
+        print(prevTree)
+        if len(prevTree) > 1 and ("1" in prevTree or "0" in prevTree):
             self.eliminate10(node)
 
+    def simplify_absurd(self,node):
+        if node and node.left and node.right:
+            if (node.root=='|' or node.root=="&") and (is_identifier(node.right.root) and node.left.root == "-" and node.left.right and is_identifier(node.left.right.root)) or (is_identifier(node.left.root) and node.right.root == "-" and node.right.right and is_identifier(node.right.right.root)):  
+                if (node.right and node.left.right and (node.right.root == node.left.right.root)) or (node.left and node.right.right and (node.left.root == node.right.right.root)):
+                    if node.root == "|":
+                        self.replace(node,Node("1"))
+                    else:
+                        self.replace(node,Node("0"))
+        if node.left:
+            self.simplify_absurd(node.left)
+        if node.right:
+            self.simplify_absurd(node.right)
 
-    def getsolutionsaux(self,node,solution):
-        if node.root=='&':
-            if node.left is not None:
-                if self.is_identifier(node.left) and node.left.root=='-':
-                    solution=solution+node.left.right.root+', '
-                elif self.is_identifier(node.left):
-                    solution=solution+'not '+node.left.root+', '
-                else:
-                    solution=self.getsolutionsaux(node.left,solution)+';'
-            if node.right is not None:
-                if self.is_identifier(node.right) and node.right.root=='-':
-                    solution=solution+node.right.right.root+', '
-                elif self.is_identifier(node.right):
-                    solution=solution+'not '+node.right.root+', '
-                else:
-                    solution=self.getsolutionsaux(node.right,solution)+';'
-        elif node.root=='|':
-            if node.left is not None:
-                if self.is_identifier(node.left) and node.left.root=='-':
-                    solution=solution+node.left.right.root+', '
-                elif self.is_identifier(node.left):
-                    solution=solution+'not '+node.left.root+', '
-                else:
-                    solution=self.getsolutionsaux(node.left,solution)
-            if node.right is not None:
-                if self.is_identifier(node.right) and node.right.root=='-':
-                    solution=solution+node.right.right.root+', '
-                elif self.is_identifier(node.right):
-                    solution=solution+'not '+node.right.root+', '
-                else:
-                    solution=self.getsolutionsaux(node.right,solution)+';'
-        elif node.root=='-':
-            solution=solution+node.right.root+'  ;'
-        elif node.root.is_identifier():
-            solution=solution+'not '+node.root+'  ;'
-        return solution
+    def eliminate_absurd(self,node):
+        prevTree = self.getlist()
+        self.simplify_absurd(node)
+        self.printTree()
+        self.printTreeP()
+        self.simplify01(node)
+        actTree = self.getlist()
+        if prevTree != actTree:
+            self.eliminate_absurd(node)
 
-    def getsolutions(self,node):
-        result=set([])
-        if node:
-            solutions=self.getsolutionsaux(node,"").split(';')
-            for solution in solutions:
-                if solution!="":
-                    if not self.is_True(solution):
-                        result.add(':- '+solution[:-2]+'.')
-        return list(result)
 
     def auxGetList(self,node):
         if node is None:
@@ -333,6 +306,8 @@ class BST:
                 i=i+1
             elif list[i]=='|':
                 solution=solution+', '
+            elif list[i]=='1' or list[i]=='0':
+                return ""
             else:
                 solution=solution+'not '+list[i]
             i=i+1
@@ -350,7 +325,6 @@ class BST:
                 listsolutions.append(self.calculateSolutions(newlist))
                 newlist.clear()
         return listsolutions
-
 
 def is_identifier(word):
     return True if word[0].isalpha() and word[0].islower() else False
@@ -425,18 +399,23 @@ def main():
         print("----------------------------- Simplify 0 1:")
         bst.eliminate10(bst.root)
         bst.printTree()
+        print("----------------------------- Absurd:")
+        bst.eliminate_absurd(bst.root)
+        bst.printTree()
+        bst.printTreeP()
         print("----------------------------- Distribution:")
-        bst.distribution(bst.root)
+        bst.do_distribution(bst.root)
         bst.printTree()
+        bst.printTreeP()
+        print("----------------------------- Absurd:")
+        bst.eliminate_absurd(bst.root)
+        bst.printTree()
+        bst.printTreeP()
         print("----------------------------- Final:")
-        #bst.convert_disjunction(bst.root)
         bst.printTree()
-
         print("----------------------------- Output:")
-        #newlist=bst.getlist()
         list_solutions=bst.doSolutions()
         print(list_solutions)
-        #list_solutions=bst.getsolutions(bst.root)
         write_output(list_solutions,output)
         print("\n\n")
 
