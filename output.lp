@@ -1,19 +1,10 @@
-{t3;t2;t1}.
+{rain;happy;workday;weekend}.
 
-% - & & t1 t2 t3.
-:- t1, t2, t3.
+% > | rain - weekend - happy.
+:- rain, happy.
+:- not weekend, happy.
 
-% | | & t1 t2 & t1 t3 & t2 t3.
-:- not t1, not t1, not t2.
-:- not t2, not t1, not t2.
-:- not t1, not t3, not t2.
-:- not t2, not t3, not t2.
-:- not t1, not t1, not t3.
-:- not t2, not t1, not t3.
-:- not t1, not t3, not t3.
-:- not t2, not t3, not t3.
-
-% - | | & t1 - t2 & t1 t2 & - t2 t2.
-:- t1, not t2.
-:- t1, t2.
+% = weekend - workday.
+:- workday, weekend.
+:- not weekend, not workday.
 

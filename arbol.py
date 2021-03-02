@@ -16,9 +16,9 @@ class BST:
         if node.is_operator() and node.right is not None and node.right.is_operator():
             return True if self.is_the_rightmost_element_of_the_left_subtree_an_identifier(node.right) else False
         elif not node.is_operator() or (node.is_operator() and node.right is not None and not node.right.is_operator()):
-            return True #returns True
+            return True #returns False
         else:
-            return False #returns False
+            return False #returns True
 
     def recursBST(self,node,data):
         if node is None:
@@ -215,16 +215,6 @@ class BST:
                     tree2.right = node.right.right
                     node.left = tree1
                     node.right = tree2
-            elif node.root=='|' and node.left is not None and node.right is not None and node.left.root=='&':
-                node.root='&'
-                treeleft=Node('|')
-                treeleft.left=node.left.left
-                treeleft.right=node.right
-                treeright=Node('|')
-                treeright.left=node.left.right
-                treeright.right=node.right
-                node.left=treeleft
-                node.right=treeright
         if node.left is not None:
             self.distribution(node.left)
         if node.right is not None:
