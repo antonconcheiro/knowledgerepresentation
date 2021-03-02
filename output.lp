@@ -1,14 +1,12 @@
-{tv;w;r;h}.
+{t1;t3;t2}.
 
-% > w - tv.
-:- w, tv.
-
-% > & r - w h.
-:- r, not w, not h.
-
-% & tv - h.
-:- not tv, h.
-
-% - r.
-:- r.
+% | | & t1 t2 & t1 t3 & t2 t3.
+:- not t1, not t1.
+:- not t2, not t1.
+:- not t1, not t3.
+:- not t2, not t3, not t2.
+:- not t1, not t1, not t3.
+:- not t2, not t1, not t3.
+:- not t1, not t3, not t3.
+:- not t2, not t3, not t3.
 

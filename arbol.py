@@ -190,7 +190,7 @@ class BST:
             if node.root=='|' and node.left is not None and node.right is not None and (node.left.root=='&' or node.right.root=='&'):
                 tree1 = Node(node.root)
                 tree2 = Node(node.root)
-                if self.depth(node.left)> self.depth(node.right) and node.left.root=='&':
+                if (self.depth(node.left)> self.depth(node.right) and node.left.root=='&') or node.right.root!='&':
                     node.root = node.left.root
                     tree1.left = node.left.left
                     tree1.right = node.right
@@ -313,6 +313,45 @@ class BST:
                         result.add(':- '+solution[:-2]+'.')
         return list(result)
 
+    def auxGetList(self,node):
+        if node is None:
+            return []
+        return self.auxGetList(node.left) + [node.root] + self.auxGetList(node.right)
+
+    def getlist(self):
+        list=[]
+        if self.root is not None:
+            list=self.auxGetList(self.root)
+        return list
+
+    def calculateSolutions(self,list):
+        solution=":- "
+        i=0
+        while i < len(list):
+            if list[i]=='-':
+                solution=solution+list[i+1]
+                i=i+1
+            elif list[i]=='|':
+                solution=solution+', '
+            else:
+                solution=solution+'not '+list[i]
+            i=i+1
+        return solution+'.'
+
+    def doSolutions(self):
+        list=self.getlist()
+        list.append('&')
+        newlist=[]
+        listsolutions=[]
+        for i in list:
+            if i!='&':
+                newlist.append(i)
+            else:
+                listsolutions.append(self.calculateSolutions(newlist))
+                newlist.clear()
+        return listsolutions
+
+
 def is_identifier(word):
     return True if word[0].isalpha() and word[0].islower() else False
 
@@ -394,8 +433,10 @@ def main():
         bst.printTree()
 
         print("----------------------------- Output:")
-        print(bst.getsolutions(bst.root))
-        list_solutions=bst.getsolutions(bst.root)
+        #newlist=bst.getlist()
+        list_solutions=bst.doSolutions()
+        print(list_solutions)
+        #list_solutions=bst.getsolutions(bst.root)
         write_output(list_solutions,output)
         print("\n\n")
 
