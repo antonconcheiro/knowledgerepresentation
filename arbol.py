@@ -1,3 +1,6 @@
+# Antón Concheiro Fernández
+# Roi Santos Ríos
+
 class Node:
     def __init__(self,data):
         self.root=data
